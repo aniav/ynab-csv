@@ -104,16 +104,10 @@ window.DataObject = class DataObject {
                   break;
                 case "Date":
                   if (normalize_date) {
-                    var d = new Date(cell),
-                        month = '' + (d.getMonth() + 1),
-                        day = '' + d.getDate(),
-                        year = d.getFullYear();
-                
-                    if (month.length < 2) 
-                        month = '0' + month;
-                    if (day.length < 2) 
-                        day = '0' + day;
-                    tmp_row[col] = [year, month, day].join('-');
+                    // Venmo outputs e.g. 2020-11-30T17:07:16
+                    // As of late 2020, if hyphens are the separators, YNAB takes it as YYYY-MM-DD
+                    if (cell.indexOf("T") >= 0)
+                      tmp_row[col] = cell.substr(0, cell.indexOf("T"))
                   } else {
                     tmp_row[col] = cell;
                   }
