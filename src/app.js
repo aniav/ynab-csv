@@ -26,7 +26,8 @@ var defaultProfile = {
   }, {}),
   chosenEncoding: "UTF-8",
   chosenDelimiter: "auto",
-  startAtRow: 1
+  startAtRow: 1,
+  normalizeDate: false
 };
 var defaultProfiles = {
   "default profile": defaultProfile
@@ -148,8 +149,9 @@ angular.element(document).ready(function () {
       $scope.profile = $scope.profiles[$scope.profileName];
       $scope.ynab_cols = $scope.profile.columnFormat;
       $scope.data = {};
-      $scope.ynab_map = $scope.profile.chosenColumns
+      $scope.ynab_map = $scope.profile.chosenColumns;
       $scope.inverted_outflow = false;
+      $scope.normalize_date = $scope.profile.normalizeDate;
       $scope.file = {
         encodings: encodings,
         delimiters: delimiters,
@@ -183,6 +185,11 @@ angular.element(document).ready(function () {
     $scope.nonDefaultProfilesExist = function() {
       return Object.keys($scope.profiles).length > 1;
     };
+    $scope.toggleNormalizeDate = function () {
+        $scope.normalize_date = !$scope.normalize_date;
+        $scope.profile.normalizeDate = $scope.normalize_date;
+        localStorage.setItem('profiles', JSON.stringify($scope.profiles));
+      };
     $scope.toggleColumnFormat = function () {
       if ($scope.ynab_cols == new_ynab_cols) {
         $scope.ynab_cols = old_ynab_cols;
@@ -199,25 +206,30 @@ angular.element(document).ready(function () {
         } else {
           $scope.data_object.parseCsv(newValue, $scope.file.chosenEncoding, $scope.file.startAtRow, $scope.file.chosenDelimiter);
         }
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow);
+        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
       }
     });
     $scope.$watch("inverted_outflow", function (newValue, oldValue) {
       if (newValue != oldValue) {
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow);
+        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
       }
     });
+    $scope.$watch("normalize_date", function (newValue, oldValue) {
+        if (newValue != oldValue) {
+          $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
+        }
+      });
     $scope.$watch(
       "ynab_map",
       function (newValue, oldValue) {
         $scope.profile.chosenColumns = newValue;
         localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, newValue, $scope.inverted_outflow);
+        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, newValue, $scope.inverted_outflow, $scope.normalize_date);
       },
       true
     );
     $scope.csvString = function () {
-      return $scope.data_object.converted_csv(null, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow);
+      return $scope.data_object.converted_csv(null, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
     };
     $scope.reloadApp = function () {
       $scope.setInitialScopeState();

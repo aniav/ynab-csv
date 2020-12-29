@@ -129,7 +129,7 @@
                       class="form-control"
                     >
                     </select>
-                  </div>
+                  </div>                
                   <div class="form-group">
                     <label for="start_row">Start at row</label>
                     <input
@@ -176,10 +176,16 @@
                 </div>
                 <div
                   class="btn btn-outline-secondary"
+                  ng-click="toggleNormalizeDate()"
+                >
+                  <i class="fa fa-exchange"></i> Toggle normalized date
+                </div>
+                <div
+                  class="btn btn-outline-secondary"
                   ng-click="toggleColumnFormat()"
                 >
-                  <i class="fa fa-exchange"></i> Toggle column format
-                </div>
+                <i class="fa fa-exchange"></i> Toggle column format
+              </div>
               </div>
               <h4>YNAB Data <small>(first 10 rows)</small></h4>
               <div class="clearfix"></div>
