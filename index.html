@@ -18,45 +18,27 @@
       integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
       crossorigin="anonymous"
     ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js" integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script
       src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
       integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
       crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" type="text/css" href="./app.css" />
-    <script type="text/javascript" src="lib/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
 
     <script src="src/data_object.js"></script>
     <script src="src/app.js"></script>
-    <script
-      src="https://browser.sentry-cdn.com/4.4.2/bundle.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      Sentry.init({
-        dsn: "https://9984f4ed07f54d7ca6107525f0d990a1@sentry.io/1362308"
-      });
-    </script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=UA-112130993-1"
-    ></script>
+    <script src='https://js.sentry-cdn.com/9984f4ed07f54d7ca6107525f0d990a1.min.js' crossorigin="anonymous"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZNWHWW4QYB"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "UA-112130993-1");
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-ZNWHWW4QYB');
     </script>
   </head>
   <body
@@ -141,7 +123,18 @@
                       class="form-control"
                     >
                     </select>
-                  </div>
+                  </div>   
+                  <div class="form-check" style="margin-bottom: 12px;">
+                    <input
+                        id="extra_row"
+                        type="checkbox"
+                        ng-model="file.extraRow"
+                        ng-change="extraRowSet(file.extraRow)"
+                        class="form-check-input"
+                        value=""
+                    >
+                    <label for="extra_row" class="form-check-label">Fill header row from first line</label>
+                  </div>           
                   <div class="form-group" ng-if="nonDefaultProfilesExist()">
                     <label for="profile">Bank profile</label>
                     <select

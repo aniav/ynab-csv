@@ -7,7 +7,7 @@ window.DataObject = class DataObject {
 
   // Parse base csv file as JSON. This will be easier to work with.
   // It uses http://papaparse.com/ for handling parsing
-  parseCsv(csv, encoding, startAtRow=1, delimiter=null) {
+  parseCsv(csv, encoding, startAtRow=1, extraRow=false, delimiter=null) {
     let existingHeaders = [];
     let config = {
       header: true,
@@ -16,6 +16,12 @@ window.DataObject = class DataObject {
         var rows = chunk.split("\n");
         var startIndex = startAtRow - 1;
         rows = rows.slice(startIndex);
+
+        if (extraRow) {
+        // If first row duplication is turned on, we add the first row to the top of the set again.
+          rows.unshift(rows[0]);
+        }
+
         return rows.join("\n");
       },
       transformHeader: function(header) {
@@ -38,7 +44,9 @@ window.DataObject = class DataObject {
     if (delimiter !== null) {
       config.delimiter = delimiter
     }
+
     var result = Papa.parse(csv, config);
+
     return (this.base_json = result);
   }
 
@@ -99,7 +107,7 @@ window.DataObject = class DataObject {
                       tmp_row[col] = cell.startsWith('-') ? cell.slice(1) : "";
                     }
                   } else {
-                    tmp_row[col] = cell;
+                    tmp_row[col] = cell.startsWith('-') ? cell.slice(1) : cell;
                   }
                   break;
                 case "Date":

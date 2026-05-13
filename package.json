@@ -4,8 +4,10 @@
   "description": "Tool for making your CSV files ready to import into YNAB online",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "open http://localhost:3000/ && node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "start": "http-server --port 3000 -o",
     "bs": "browser-sync . -w"
   },
   "repository": {
@@ -16,16 +18,21 @@
     "ynab",
     "csv"
   ],
-  "dependencies": {
-    "express": "^4.16.4"
-  },
   "author": "Ryan Hall",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/aniav/ynab-csv/issues"
   },
   "homepage": "https://github.com/aniav/ynab-csv",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  },
   "devDependencies": {
-    "browser-sync": "^2.26.7"
+    "@babel/preset-env": "^7.28.0",
+    "babel-jest": "^30.0.5",
+    "browser-sync": "^3.0.2",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "jsdom": "^26.1.0"
   }
 }
