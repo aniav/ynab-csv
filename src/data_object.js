@@ -111,11 +111,10 @@ window.DataObject = class DataObject {
                   }
                   break;
                 case "Date":
-                  if (normalize_date) {
-                    // Venmo outputs e.g. 2020-11-30T17:07:16
-                    // As of late 2020, if hyphens are the separators, YNAB takes it as YYYY-MM-DD
-                    if (cell.indexOf("T") >= 0)
-                      tmp_row[col] = cell.substr(0, cell.indexOf("T"))
+                  // Venmo outputs e.g. 2020-11-30T17:07:16
+                  // As of late 2020, if hyphens are the separators, YNAB takes it as YYYY-MM-DD
+                  if (normalize_date && cell.indexOf("T") >= 0) {
+                    tmp_row[col] = cell.slice(0, cell.indexOf("T"));
                   } else {
                     tmp_row[col] = cell;
                   }

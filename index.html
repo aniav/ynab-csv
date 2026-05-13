@@ -111,7 +111,7 @@
                       class="form-control"
                     >
                     </select>
-                  </div>                
+                  </div>
                   <div class="form-group">
                     <label for="start_row">Start at row</label>
                     <input
@@ -161,24 +161,25 @@
             <div class="card-header">
               <div class="float-right">
                 <div
+                  class="btn btn-outline-secondary"
+                  ng-click="toggleNormalizeDate()"
+                >
+                  <i class="fa fa-exchange"></i> Toggle date normalization
+                </div>
+                <div
                   ng-show="ynab_cols.indexOf('Inflow') != -1 && ynab_map['Inflow'] == ynab_map['Outflow']"
                   class="btn btn-outline-secondary"
                   ng-click="invert_flows()"
                 >
                   <i class="fa fa-exchange"></i> Invert flows
                 </div>
-                <div
-                  class="btn btn-outline-secondary"
-                  ng-click="toggleNormalizeDate()"
-                >
-                  <i class="fa fa-exchange"></i> Toggle normalized date
-                </div>
+
                 <div
                   class="btn btn-outline-secondary"
                   ng-click="toggleColumnFormat()"
                 >
-                <i class="fa fa-exchange"></i> Toggle column format
-              </div>
+                  <i class="fa fa-exchange"></i> Toggle amounts format
+                </div>
               </div>
               <h4>YNAB Data <small>(first 10 rows)</small></h4>
               <div class="clearfix"></div>
