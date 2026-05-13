@@ -295,10 +295,40 @@ describe('DataObject', () => {
 
     test('should return null if base_json is null', () => {
       dataObject.base_json = null;
-      
+
       const result = dataObject.converted_json(null, [], {});
-      
+
       expect(result).toBeNull();
+    });
+
+    describe('normalize_date parameter', () => {
+      const ynab_cols = ['Date', 'Payee', 'Amount'];
+      const lookup = { 'Date': 'Date', 'Payee': 'Description', 'Amount': 'Amount' };
+
+      beforeEach(() => {
+        dataObject.base_json = {
+          data: [
+            { 'Date': '2020-11-30T17:07:16', 'Description': 'Coffee', 'Amount': '-5.00' },
+            { 'Date': '2024-01-01', 'Description': 'Salary', 'Amount': '1000.00' }
+          ],
+          meta: { fields: ['Date', 'Description', 'Amount'] }
+        };
+      });
+
+      test('should strip time component when date contains T', () => {
+        const result = dataObject.converted_json(null, ynab_cols, lookup, false, true);
+        expect(result[0]['Date']).toBe('2020-11-30');
+      });
+
+      test('should pass through date unchanged when it has no T', () => {
+        const result = dataObject.converted_json(null, ynab_cols, lookup, false, true);
+        expect(result[1]['Date']).toBe('2024-01-01');
+      });
+
+      test('should pass through datetime unchanged when normalize_date is false', () => {
+        const result = dataObject.converted_json(null, ynab_cols, lookup, false, false);
+        expect(result[0]['Date']).toBe('2020-11-30T17:07:16');
+      });
     });
   });
 
@@ -414,6 +444,23 @@ describe('DataObject', () => {
       
       const lines = result.trim().split('\n');
       expect(lines[1]).toBe('"2024-01-01","","","-50.00"');
+    });
+
+    test('should normalize dates in CSV export when normalize_date is true', () => {
+      dataObject.base_json = {
+        data: [
+          { 'Date': '2020-11-30T17:07:16', 'Description': 'Coffee', 'Amount': '-5.00', 'Notes': '' }
+        ],
+        meta: { fields: ['Date', 'Description', 'Amount', 'Notes'] }
+      };
+
+      const ynab_cols = ['Date', 'Payee', 'Memo', 'Amount'];
+      const lookup = { 'Date': 'Date', 'Payee': 'Description', 'Memo': 'Notes', 'Amount': 'Amount' };
+
+      const result = dataObject.converted_csv(null, ynab_cols, lookup, false, true);
+
+      const lines = result.trim().split('\n');
+      expect(lines[1]).toContain('"2020-11-30"');
     });
 
     test('should respect limit parameter', () => {
