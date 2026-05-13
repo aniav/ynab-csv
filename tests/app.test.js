@@ -194,7 +194,8 @@ describe('ParseController', () => {
         10,
         $scope.ynab_cols,
         $scope.ynab_map,
-        $scope.inverted_outflow
+        $scope.inverted_outflow,
+        $scope.normalize_date
       );
     });
 
@@ -256,7 +257,8 @@ describe('ParseController', () => {
         10,
         $scope.ynab_cols,
         $scope.ynab_map,
-        $scope.inverted_outflow
+        $scope.inverted_outflow,
+        $scope.normalize_date
       );
     });
 
@@ -284,7 +286,8 @@ describe('ParseController', () => {
         10,
         $scope.ynab_cols,
         newMapping,
-        $scope.inverted_outflow
+        $scope.inverted_outflow,
+        $scope.normalize_date
       );
     });
 
@@ -297,7 +300,8 @@ describe('ParseController', () => {
         null,
         $scope.ynab_cols,
         $scope.ynab_map,
-        $scope.inverted_outflow
+        $scope.inverted_outflow,
+        $scope.normalize_date
       );
       expect(result).toBe('Date,Payee,Amount\n2024-01-01,Store,-50.00');
     });
