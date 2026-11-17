@@ -31,12 +31,10 @@
     "http-server": "^14.1.1"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.29.14",
+    "@fortawesome/fontawesome-free": "7.3.1",
     "alpinejs": "3.17.5",
-    "babel-jest": "^30.5.2",
     "bootstrap": "5.3.9",
     "browser-sync": "^3.0.2",
-    "font-awesome": "4.7.0",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "jsdom": "^26.1.0",
