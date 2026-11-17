@@ -13,8 +13,8 @@
     >
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"
-      integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
+      href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"
+      integrity="sha384-qrALq7+6jBOZIQsNnT6xGkMDru64qD6uTlDra39xrt2SoXl4pO3FX6Roz/RpR/BS"
       crossorigin="anonymous"
     />
     <link rel="stylesheet" type="text/css" href="./app.css" />
@@ -54,10 +54,10 @@
       <div class="container">
         <div class="float-end" x-show="data_object.base_json">
           <button type="button" class="btn btn-info" @click="reloadApp()">
-            <i class="fa fa-refresh"></i> Load a different file
+            <i class="fa-solid fa-arrows-rotate"></i> Load a different file
           </button>
           <button type="button" class="btn btn-success" @click="downloadFile()">
-            <i class="fa fa-cloud-download"></i> Save YNAB Data
+            <i class="fa-solid fa-cloud-arrow-down"></i> Save YNAB Data
           </button>
         </div>
         <div>
@@ -65,7 +65,7 @@
             href="https://github.com/aniav/ynab-csv/issues/new"
             target="_blank"
             class="btn btn-secondary"
-            ><i class="fa fa-exclamation-circle"></i> Report an issue</a
+            ><i class="fa-solid fa-circle-exclamation"></i> Report an issue</a
           >
         </div>
       </div>
@@ -86,7 +86,7 @@
           <div id="drop_text">Drop file</div>
           <form>
             <div class="fileUpload btn btn-info">
-              <span>Or choose <i class="fa fa-folder-open"></i></span>
+              <span>Or choose <i class="fa-solid fa-folder-open"></i></span>
               <input id="file" type="file" @change="onFileChange($event)" />
             </div>
             <div class="btn-group">
@@ -175,7 +175,7 @@
               <div class="card-header">
                 <div class="float-end">
                   <button type="button" class="btn btn-outline-secondary" @click="toggleNormalizeDate()">
-                    <i class="fa fa-exchange"></i> Toggle date normalization
+                    <i class="fa-solid fa-right-left"></i> Toggle date normalization
                   </button>
                   <button
                     type="button"
@@ -183,10 +183,10 @@
                     x-show="ynab_cols.includes('Inflow') && ynab_map['Inflow'] == ynab_map['Outflow']"
                     @click="invertFlows()"
                   >
-                    <i class="fa fa-exchange"></i> Invert flows
+                    <i class="fa-solid fa-right-left"></i> Invert flows
                   </button>
                   <button type="button" class="btn btn-outline-secondary" @click="toggleColumnFormat()">
-                    <i class="fa fa-exchange"></i> Toggle amounts format
+                    <i class="fa-solid fa-right-left"></i> Toggle amounts format
                   </button>
                 </div>
                 <h4>YNAB Data <small>(first 10 rows)</small></h4>
@@ -261,7 +261,7 @@
 
     <div id="app_is_loading">
       <div class="loading_text">
-        <i class="fa fa-spinner fa-spin"></i> Loading...
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
       </div>
     </div>
   </body>
