@@ -44,217 +44,193 @@ Date.prototype.yyyymmdd = function () {
   ].join('');
 };
 
-angular.element(document).ready(function () {
-  angular.module("app", []);
-  angular.module("app").directive("fileread", [
-    function () {
-      return {
-        scope: {
-          fileread: "="
-        },
-        link: function (scope, element, attributes) {
-          return element.bind("change", function (changeEvent) {
-            var reader;
-            reader = new FileReader();
-            reader.onload = function (loadEvent) {
-              return scope.$apply(function () {
-                scope.fileread = loadEvent.target.result;
-              });
-            };
-            reader.readAsText(changeEvent.target.files[0], attributes.encoding);
-          });
-        }
-      };
-    }
-  ]);
-  angular.module("app").directive("dropzone", [
-    function () {
-      return {
-        transclude: true,
-        replace: true,
-        template: '<div class="dropzone"><div ng-transclude></div></div>',
-        scope: {
-          dropzone: "="
-        },
-        link: function (scope, element, attributes) {
-          element.bind("dragenter", function (event) {
-            element.addClass("dragging");
-            event.preventDefault();
-          });
-          element.bind("dragover", function (event) {
-            var efct;
-            element.addClass("dragging");
-            event.preventDefault();
-            event.stopPropagation();
-            var dataTransfer;
-            dataTransfer = (event.dataTransfer || event.originalEvent.dataTransfer)
-            efct = dataTransfer.effectAllowed;
-            dataTransfer.dropEffect =
-              "move" === efct || "linkMove" === efct ? "move" : "copy";
-          });
-          element.bind("dragleave", function (event) {
-            element.removeClass("dragging");
-            event.preventDefault();
-          });
-          element.bind("drop", function (event) {
-            var reader;
-            element.removeClass("dragging");
-            event.preventDefault();
-            event.stopPropagation();
-            reader = new FileReader();
-            reader.onload = function (loadEvent) {
-              scope.$apply(function () {
-                scope.dropzone = loadEvent.target.result;
-              });
-            };
-            file = (event.dataTransfer || event.originalEvent.dataTransfer).files[0];
-            reader.readAsText(file, attributes.encoding);
-          });
-          element.bind("paste", function (event) {
-            var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-            for (var i = 0; i < items.length; i++) {
-              if (items[i].type == 'text/plain') {
-                data = items[i];
-                break;
-              }
-            }
-            if (!data) return;
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 
-            data.getAsString(function(text) {
-              scope.$apply(function () {
-                scope.dropzone = text;
-              });
-            });
-          });
-        }
-      };
-    }
-  ]);
-  // Application code
-  angular.module("app")
-  .config(function($locationProvider) {
-    $locationProvider.html5Mode({
-      enabled: true,
-      requireBase: false,
-    }).hashPrefix('!');
-  })
-  .controller("ParseController", function ($scope, $location) {
-    $scope.angular_loaded = true;
+// Alpine.js component for the whole page (see x-data="ynabApp" in index.html).
+// Kept free of Alpine-specific magics so it can be unit tested as a plain object.
+function ynabApp() {
+  return {
+    loaded: false,
+    dragging: false,
+    profileName: null,
+    profiles: {},
+    profile: {},
+    ynab_cols: [],
+    ynab_map: {},
+    inverted_outflow: false,
+    normalize_date: false,
+    file: {},
+    data_object: new DataObject(),
 
-    $scope.setInitialScopeState = function () {
-      $scope.profileName = ($location.search().profile || localStorage.getItem('profileName') || 'default profile').toLowerCase();
-      $scope.profiles = JSON.parse(localStorage.getItem('profiles')) || defaultProfiles;
-      if(!$scope.profiles[$scope.profileName]) {
-        $scope.profiles[$scope.profileName] = defaultProfile;
+    init: function () {
+      this.setInitialState();
+      this.loaded = true;
+    },
+
+    setInitialState: function () {
+      var params = new URLSearchParams(window.location.search);
+      this.profileName = (params.get('profile') || localStorage.getItem('profileName') || 'default profile').toLowerCase();
+      this.profiles = JSON.parse(localStorage.getItem('profiles')) || clone(defaultProfiles);
+      if (!this.profiles[this.profileName]) {
+        this.profiles[this.profileName] = clone(defaultProfile);
       }
-      $scope.profile = $scope.profiles[$scope.profileName];
-      $scope.ynab_cols = $scope.profile.columnFormat;
-      $scope.data = {};
-      $scope.ynab_map = $scope.profile.chosenColumns;
-      $scope.inverted_outflow = false;
-      $scope.normalize_date = $scope.profile.normalizeDate;
-      $scope.file = {
+      this.applyProfile();
+      this.inverted_outflow = false;
+      this.dragging = false;
+      this.data_object = new DataObject();
+    },
+
+    applyProfile: function () {
+      var profile = this.profiles[this.profileName];
+      profile.columnFormat = profile.columnFormat || old_ynab_cols.slice();
+      profile.chosenColumns = profile.chosenColumns || {};
+      this.profile = profile;
+      this.ynab_cols = profile.columnFormat;
+      this.ynab_map = profile.chosenColumns;
+      this.normalize_date = profile.normalizeDate || false;
+      this.file = {
         encodings: encodings,
         delimiters: delimiters,
-        chosenEncoding: $scope.profile.chosenEncoding || "UTF-8",
-        chosenDelimiter: $scope.profile.chosenDelimiter || "auto",
-        startAtRow: $scope.profile.startAtRow,
-        extraRow: $scope.profile.extraRow || false
+        chosenEncoding: profile.chosenEncoding || "UTF-8",
+        chosenDelimiter: profile.chosenDelimiter || "auto",
+        startAtRow: profile.startAtRow || 1,
+        extraRow: profile.extraRow || false
       };
-      $scope.data_object = new DataObject();
-    }
+    },
 
-    $scope.setInitialScopeState();
-    $scope.profileChosen = function (profileName) {
-      $location.search('profile', profileName);
-      $scope.profile = $scope.profiles[$scope.profileName];
-      $scope.ynab_cols = $scope.profile.columnFormat;
-      $scope.ynab_map = $scope.profile.chosenColumns;
+    saveProfiles: function () {
+      localStorage.setItem('profiles', JSON.stringify(this.profiles));
+    },
+
+    profileChosen: function (profileName) {
+      var url = new URL(window.location.href);
+      url.searchParams.set('profile', profileName);
+      window.history.replaceState(null, '', url);
       localStorage.setItem('profileName', profileName);
-    };
-    $scope.encodingChosen = function (encoding) {
-      $scope.profile.chosenEncoding = encoding;
-      localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-    };
-    $scope.delimiterChosen = function (delimiter) {
-      $scope.profile.chosenDelimiter = delimiter;
-      localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-    };
-    $scope.startRowSet = function (startAtRow) {
-      $scope.profile.startAtRow = startAtRow;
-      localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-    };
-    $scope.extraRowSet = function (extraRow) {
-      $scope.profile.extraRow = extraRow;
-      localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-    };
-    $scope.nonDefaultProfilesExist = function() {
-      return Object.keys($scope.profiles).length > 1;
-    };
-    $scope.toggleNormalizeDate = function () {
-        $scope.normalize_date = !$scope.normalize_date;
-        $scope.profile.normalizeDate = $scope.normalize_date;
-        localStorage.setItem('profiles', JSON.stringify($scope.profiles));
+      this.profileName = profileName;
+      this.applyProfile();
+    },
+
+    // Called when any of the "Input file config" fields change.
+    settingsChanged: function () {
+      this.profile.chosenEncoding = this.file.chosenEncoding;
+      this.profile.chosenDelimiter = this.file.chosenDelimiter;
+      this.profile.startAtRow = this.file.startAtRow;
+      this.profile.extraRow = this.file.extraRow;
+      this.saveProfiles();
+    },
+
+    nonDefaultProfilesExist: function () {
+      return Object.keys(this.profiles).length > 1;
+    },
+
+    toggleColumnFormat: function () {
+      this.ynab_cols = this.ynab_cols.includes("Amount") ? old_ynab_cols.slice() : new_ynab_cols.slice();
+      this.profile.columnFormat = this.ynab_cols;
+      this.saveProfiles();
+    },
+
+    toggleNormalizeDate: function () {
+      this.normalize_date = !this.normalize_date;
+      this.profile.normalizeDate = this.normalize_date;
+      this.saveProfiles();
+    },
+
+    invertFlows: function () {
+      this.inverted_outflow = !this.inverted_outflow;
+    },
+
+    get preview() {
+      if (!this.data_object.base_json) {
+        return [];
+      }
+      return this.data_object.converted_json(10, this.ynab_cols, this.ynab_map, this.inverted_outflow, this.normalize_date);
+    },
+
+    // --- loading data ---------------------------------------------------
+
+    loadCsv: function (text) {
+      if (!text) {
+        return;
+      }
+      var delimiter = this.file.chosenDelimiter == "auto" ? null : this.file.chosenDelimiter;
+      this.data_object.parseCsv(text, this.file.chosenEncoding, this.file.startAtRow, this.profile.extraRow, delimiter);
+    },
+
+    readFile: function (file) {
+      var self = this;
+      var reader = new FileReader();
+      reader.onload = function (loadEvent) {
+        self.loadCsv(loadEvent.target.result);
       };
-    $scope.toggleColumnFormat = function () {
-      if ($scope.ynab_cols == new_ynab_cols) {
-        $scope.ynab_cols = old_ynab_cols;
-      } else {
-        $scope.ynab_cols = new_ynab_cols;
+      reader.readAsText(file, this.file.chosenEncoding);
+    },
+
+    onFileChange: function (event) {
+      var file = event.target.files[0];
+      if (file) {
+        this.readFile(file);
       }
-      $scope.profile.columnFormat = $scope.ynab_cols
-      localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-    };
-    $scope.$watch("data.source", function (newValue, oldValue) {
-      if (newValue && newValue.length > 0) {
-        if ($scope.file.chosenDelimiter == "auto") {
-          $scope.data_object.parseCsv(newValue, $scope.file.chosenEncoding, $scope.file.startAtRow, $scope.profile.extraRow);
-        } else {
-          $scope.data_object.parseCsv(newValue, $scope.file.chosenEncoding, $scope.file.startAtRow, $scope.profile.extraRow, $scope.file.chosenDelimiter);
-        }
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
+      // Allow choosing the same file again after "Load a different file".
+      event.target.value = "";
+    },
+
+    onDragOver: function (event) {
+      this.dragging = true;
+      var dataTransfer = event.dataTransfer;
+      var effect = dataTransfer.effectAllowed;
+      dataTransfer.dropEffect = "move" === effect || "linkMove" === effect ? "move" : "copy";
+    },
+
+    onDrop: function (event) {
+      this.dragging = false;
+      var file = event.dataTransfer && event.dataTransfer.files[0];
+      if (file) {
+        this.readFile(file);
       }
-    });
-    $scope.$watch("inverted_outflow", function (newValue, oldValue) {
-      if (newValue != oldValue) {
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
+    },
+
+    onPaste: function (event) {
+      var self = this;
+      var items = Array.from((event.clipboardData && event.clipboardData.items) || []);
+      var item = items.find(function (i) { return i.type == 'text/plain'; });
+      if (!item) {
+        return;
       }
-    });
-    $scope.$watch("normalize_date", function (newValue, oldValue) {
-        if (newValue != oldValue) {
-          $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
-        }
+      item.getAsString(function (text) {
+        self.loadCsv(text);
       });
-    $scope.$watch(
-      "ynab_map",
-      function (newValue, oldValue) {
-        $scope.profile.chosenColumns = newValue;
-        localStorage.setItem('profiles', JSON.stringify($scope.profiles));
-        $scope.preview = $scope.data_object.converted_json(10, $scope.ynab_cols, newValue, $scope.inverted_outflow, $scope.normalize_date);
-      },
-      true
-    );
-    $scope.csvString = function () {
-      return $scope.data_object.converted_csv(null, $scope.ynab_cols, $scope.ynab_map, $scope.inverted_outflow, $scope.normalize_date);
-    };
-    $scope.reloadApp = function () {
-      $scope.setInitialScopeState();
-    }
-    $scope.invert_flows = function () {
-      $scope.inverted_outflow = !$scope.inverted_outflow;
-    }
-    $scope.downloadFile = function () {
-      var a;
-      var date = new Date();
-      a = document.createElement("a");
-      a.href =
-        "data:attachment/csv;base64," +
-        btoa(unescape(encodeURIComponent($scope.csvString())));
+    },
+
+    // --- output -----------------------------------------------------------
+
+    csvString: function () {
+      return this.data_object.converted_csv(null, this.ynab_cols, this.ynab_map, this.inverted_outflow, this.normalize_date);
+    },
+
+    reloadApp: function () {
+      this.setInitialState();
+    },
+
+    downloadFile: function () {
+      var a = document.createElement("a");
+      // UTF-8 encode, then base64
+      a.href = "data:attachment/csv;base64," + btoa(unescape(encodeURIComponent(this.csvString())));
       a.target = "_blank";
-      a.download = `ynab_data_${date.yyyymmdd()}.csv`;
+      a.download = "ynab_data_" + new Date().yyyymmdd() + ".csv";
       document.body.appendChild(a);
       a.click();
-    };
-  });
-  angular.bootstrap(document, ["app"]);
+      a.remove();
+    }
+  };
+}
+
+document.addEventListener('alpine:init', function () {
+  window.Alpine.data('ynabApp', ynabApp);
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { ynabApp: ynabApp, defaultProfile: defaultProfile, old_ynab_cols: old_ynab_cols, new_ynab_cols: new_ynab_cols };
+}

@@ -98,7 +98,10 @@ async function loadPage({ url = 'http://localhost/', localStorage = {}, only = n
   virtualConsole.on('error', (...args) => errors.push(new Error(args.join(' '))));
 
   // Strip external scripts so jsdom never tries to fetch them; we inject local copies.
-  const html = INDEX_HTML.replace(/<script[^>]*\bsrc=[^>]*><\/script>/g, '');
+  // Inline local stylesheets so visibility (display: none) behaves as in a browser.
+  const html = INDEX_HTML
+    .replace(/<script[^>]*\bsrc=[^>]*><\/script>/g, '')
+    .replace(/<link[^>]*href="\.?\/?([\w.-]+\.css)"[^>]*>/g, (_, f) => `<style>${fs.readFileSync(path.join(ROOT, f), 'utf8')}</style>`);
   const dom = new JSDOM(html, { url, runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole });
   const { window } = dom;
 
@@ -128,17 +131,42 @@ async function loadPage({ url = 'http://localhost/', localStorage = {}, only = n
     $: (sel) => window.document.querySelector(sel),
     $$: (sel) => Array.from(window.document.querySelectorAll(sel)),
     waitFor,
-    scope: () => window.angular.element(window.document.body).scope(),
+    isVisible: (el) => isVisible(window, el),
+    // Let the framework flush pending DOM updates (microtasks, timers and
+    // animation frames, which Alpine's x-show uses).
+    settle: () => new Promise((r) => setTimeout(() => window.requestAnimationFrame(() => window.requestAnimationFrame(() => setTimeout(r))))),
     close: () => window.close(),
   };
 
   if (!only) {
-    await waitFor(() => window.document.body.classList.contains('angular_loaded'));
+    // Loaded = the "Loading..." overlay is gone and the upload form is showing.
+    await waitFor(() => !page.isVisible(page.$('.loading_text')) && page.isVisible(page.$('#upload_wrapper')));
   }
   return page;
 }
 
 // --- interaction helpers -------------------------------------------------
+
+// Rendered and not hidden by itself or any ancestor.
+function isVisible(window, el) {
+  if (!el || !el.isConnected) return false;
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+    if (window.getComputedStyle(n).display === 'none') return false;
+  }
+  return true;
+}
+
+async function click(page, el) {
+  el.click();
+  await page.settle();
+}
+
+async function setValue(page, input, value) {
+  input.value = value;
+  fire(page, input, 'input');
+  fire(page, input, 'change');
+  await page.settle();
+}
 
 function fire(page, el, type, props = {}) {
   const ev = new page.window.Event(type, { bubbles: true, cancelable: true });
@@ -155,14 +183,16 @@ async function uploadFile(page, content, name) {
   const input = page.$('#file');
   Object.defineProperty(input, 'files', { value: [makeFile(page, content, name)], configurable: true });
   fire(page, input, 'change');
-  await page.waitFor(() => page.$('#tool_wrapper'));
+  await page.waitFor(() => page.$('#tool_wrapper') && previewTable(page).rows.length);
+  await page.settle();
 }
 
-function selectOption(page, select, label) {
+async function selectOption(page, select, label) {
   const option = Array.from(select.options).find((o) => o.textContent.trim() === label);
   if (!option) throw new Error(`No option "${label}" in #${select.id}`);
   select.value = option.value;
   fire(page, select, 'change');
+  await page.settle();
 }
 
 function tableText(table, headSelector) {
@@ -207,6 +237,8 @@ module.exports = {
   sri,
   loadPage,
   fire,
+  click,
+  setValue,
   makeFile,
   uploadFile,
   selectOption,
