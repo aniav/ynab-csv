@@ -2,14 +2,12 @@ html, body, .dropzone { height: 100%; }
 
 /* Loading helpers*/
 body:not(.app_loaded) .show_on_load { display: none; }
-.app_loaded .hide_on_load { display: none; }
-#app_is_loading { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0,0,0,.5); color: white; font-size: 70px; text-align: center; padding-top: 200px; box-shadow: 0 0 10px rgba(0,0,0,.5); transition: all 2s; -webkit-transition: all 2s; }
-body.app_loaded #app_is_loading { display: none; top: 3000px; bottom: -3000px; }
+#app_is_loading { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0,0,0,.5); color: white; font-size: 70px; text-align: center; padding-top: 200px; box-shadow: 0 0 10px rgba(0,0,0,.5); }
+body.app_loaded #app_is_loading { display: none; }
 
 
 /* Header */
 #header_nav { position: fixed; top: 0; left: 0; right: 0; padding: 10px; background-color: rgb(240, 240, 240); z-index: 1; box-shadow: 0 0 10px rgba(0,0,0,.5); }
-#header_nav h1 { display: inline-block; font-size: 20px; margin: 0; vertical-align: middle; margin-right: 15px;}
 
 
 /* Dropzone */
@@ -19,7 +17,7 @@ body.app_loaded #app_is_loading { display: none; top: 3000px; bottom: -3000px; }
 #upload_wrapper { text-align: center;}
 #upload_wrapper #drop_text { font-size: 60px; padding-top: 150px; }
 #upload_wrapper .fileUpload { position: relative; overflow: hidden; margin: 10px; }
-#upload_wrapper .fileUpload input { position: absolute; top: 0; right: 0; margin: 0; padding: 0; font-size: 20px; cursor: pointer; opacity: 0; filter: alpha(opacity=0); }
+#upload_wrapper .fileUpload input { position: absolute; top: 0; right: 0; margin: 0; padding: 0; font-size: 20px; cursor: pointer; opacity: 0; }
 
 
 #tool_wrapper { margin-bottom: 40px; }

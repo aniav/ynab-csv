@@ -1,0 +1,9 @@
+# The image only copies package*.json, index.html, app.css and src/ (see dockerfile);
+# ignore everything else to keep the build context small.
+.git
+.github
+node_modules
+coverage
+tests
+*.log
+.env

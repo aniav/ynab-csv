@@ -30,8 +30,8 @@ To run the project locally using Docker Compose:
 
 1. Clone this repository: `git clone https://github.com/aniav/ynab-csv.git`
 2. Navigate to the cloned directory: `cd ynab-csv`
-3. Run the following command: `docker-compose up -d`
-4. Open your web browser and navigate to http://localhost:3000
+3. Run: `docker compose up -d`
+4. Open your web browser and navigate to http://localhost:3000 (set `PORT` in `.env` to use a different port)
 
 ## Privacy
 
@@ -44,12 +44,14 @@ If you have any other issues or suggestions, go to https://github.com/aniav/ynab
 
 ## Contribute
 
+The app is a static page (Alpine.js, Bootstrap and PapaParse loaded from a CDN) with no build step. You need [Node.js](https://nodejs.org/) 26 (see `.node-version`) for the dev server and tests.
+
 1. Fork and clone the project
-2. `cd` into project
-3. Run `npm install`   # You will need to install node and npm if it is not already
-4. Run `npm start`   # when running in Windows, modify package.json and replace "open" with "start"
-  * Optional: run `npm run bs` instead to use [Browsersync](https://browsersync.io/)
-5. Make your changes locally and test them to make sure they work
+2. `cd` into the project
+3. Run `npm install`
+4. Run `npm start` to serve the app at http://localhost:3000
+5. Make your changes and run `npm test` (unit tests plus full-page tests that load `index.html` in jsdom)
 6. Commit those changes and push to your forked repository
 7. Make a new pull request
 
+When updating a library loaded from the CDN in `index.html`, update the matching pinned version in `package.json` and its `integrity` hash too; `npm test` checks that they match.

@@ -140,7 +140,7 @@ async function loadPage({ url = 'http://localhost/', localStorage = {}, only = n
 
   if (!only) {
     // Loaded = the "Loading..." overlay is gone and the upload form is showing.
-    await waitFor(() => !page.isVisible(page.$('.loading_text')) && page.isVisible(page.$('#upload_wrapper')));
+    await waitFor(() => !page.isVisible(page.$('#app_is_loading')) && page.isVisible(page.$('#upload_wrapper')));
   }
   return page;
 }
