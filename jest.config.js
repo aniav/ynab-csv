@@ -9,5 +9,4 @@ module.exports = {
     'src/**/*.js',
     '!src/**/*.min.js',
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };

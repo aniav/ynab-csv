@@ -1,10 +1,10 @@
 html, body, .dropzone { height: 100%; }
 
 /* Loading helpers*/
-body:not(.angular_loaded) .show_on_load { display: none; }
-.angular_loaded .hide_on_load { display: none; }
-#angular_is_loading { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0,0,0,.5); color: white; font-size: 70px; text-align: center; padding-top: 200px; box-shadow: 0 0 10px rgba(0,0,0,.5); transition: all 2s; -webkit-transition: all 2s; }
-body.angular_loaded #angular_is_loading { display: none; top: 3000px; bottom: -3000px; }
+body:not(.app_loaded) .show_on_load { display: none; }
+.app_loaded .hide_on_load { display: none; }
+#app_is_loading { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background-color: rgba(0,0,0,.5); color: white; font-size: 70px; text-align: center; padding-top: 200px; box-shadow: 0 0 10px rgba(0,0,0,.5); transition: all 2s; -webkit-transition: all 2s; }
+body.app_loaded #app_is_loading { display: none; top: 3000px; bottom: -3000px; }
 
 
 /* Header */
@@ -26,3 +26,40 @@ body.angular_loaded #angular_is_loading { display: none; top: 3000px; bottom: -3
 #tool_wrapper .table-container { overflow: auto; }
 
 .dropdown-form {width: 200px;}
+
+/* Keep Bootstrap 4 button colours (Bootstrap 5 changed info to light cyan with dark text, and darkened success) */
+.btn-info {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #17a2b8;
+  --bs-btn-border-color: #17a2b8;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #138496;
+  --bs-btn-hover-border-color: #117a8b;
+  --bs-btn-focus-shadow-rgb: 58, 176, 195;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #117a8b;
+  --bs-btn-active-border-color: #10707f;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #17a2b8;
+  --bs-btn-disabled-border-color: #17a2b8;
+}
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #28a745;
+  --bs-btn-border-color: #28a745;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #218838;
+  --bs-btn-hover-border-color: #1e7e34;
+  --bs-btn-focus-shadow-rgb: 72, 180, 97;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #1e7e34;
+  --bs-btn-active-border-color: #1c7430;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #28a745;
+  --bs-btn-disabled-border-color: #28a745;
+}
+
+/* Bootstrap 5 added a 1320px "xxl" container width; keep Bootstrap 4's 1140px maximum */
+@media (min-width: 1400px) {
+  .container { max-width: 1140px; }
+}

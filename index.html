@@ -2,11 +2,13 @@
 <!-- vim: set tabstop=2 shiftwidth=2 softtabstop=2 expandtab : -->
 <html lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>YNAB CSV Converter</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+      integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
       crossorigin="anonymous"
     >
     <link
@@ -15,35 +17,27 @@
       integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
       crossorigin="anonymous"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"
-      integrity="sha384-5AkRS45j4ukf+JbWAfHL8P4onPA9p0KwwP7pUdjSQA3ss9edbJUJc/XcYAiheSSz"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"
-      integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+"
-      crossorigin="anonymous"
-    ></script>
     <link rel="stylesheet" type="text/css" href="./app.css" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-WyOxWvTyr1QaMPfiPJSv76iReVthorl5uWlFtZPyK0IEB0hGzo9y5Bp9mYanr8Bu"
+      crossorigin="anonymous"
+    ></script>
     <script
       src="https://cdn.jsdelivr.net/npm/papaparse@5.7.1/papaparse.min.js"
       integrity="sha384-1p3fY0k54nd9NrUVt6Rvs3KpSxbtCo+IPIVV25jLrbd1J1YpXDZtyW32BkVBMHeC"
       crossorigin="anonymous"
     ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/angular@1.8.3/angular.min.js"
-      integrity="sha384-quGekMf1ic6tIOn1GgLl0Pzra4ZkFyTcaDW3hZRjORqPQe3HnTKGl+lNPpuh7Lwv"
-      crossorigin="anonymous"
-    ></script>
 
     <script src="src/data_object.js"></script>
     <script src="src/app.js"></script>
+    <!-- Alpine must load after src/app.js, which registers the component on alpine:init -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.5/dist/cdn.min.js"
+      integrity="sha384-FYLKjwG3aohNhNZoVG8sY/5ntunm+MqylL90Q+rT3OM7AwV9/BKFjk/RjoIpIgsI"
+      crossorigin="anonymous"
+    ></script>
     <script src='https://js.sentry-cdn.com/9984f4ed07f54d7ca6107525f0d990a1.min.js' crossorigin="anonymous"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZNWHWW4QYB"></script>
@@ -51,25 +45,22 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
+
       gtag('config', 'G-ZNWHWW4QYB');
     </script>
   </head>
-  <body
-    ng-controller="ParseController"
-    ng-class="{angular_loaded: angular_loaded}"
-  >
+  <body x-data="ynabApp" :class="{ app_loaded: loaded }">
     <div id="header_nav" class="show_on_load">
       <div class="container">
-        <div class="float-right" ng-if="data_object.base_json">
-          <div class="btn btn-info" ng-click="reloadApp()">
+        <div class="float-end" x-show="data_object.base_json">
+          <button type="button" class="btn btn-info" @click="reloadApp()">
             <i class="fa fa-refresh"></i> Load a different file
-          </div>
-          <div class="btn btn-success" ng-click="downloadFile()">
+          </button>
+          <button type="button" class="btn btn-success" @click="downloadFile()">
             <i class="fa fa-cloud-download"></i> Save YNAB Data
-          </div>
+          </button>
         </div>
-        <div class="form-inline">
+        <div>
           <a
             href="https://github.com/aniav/ynab-csv/issues/new"
             target="_blank"
@@ -80,183 +71,195 @@
       </div>
     </div>
 
-    <div dropzone="data.source" encoding="{{file.chosenEncoding}}" delimiter="{{file.chosenDelimiter}}">
+    <div
+      class="dropzone"
+      :class="{ dragging: dragging }"
+      @dragenter.prevent="dragging = true"
+      @dragover.prevent.stop="onDragOver($event)"
+      @dragleave.prevent="dragging = false"
+      @drop.prevent.stop="onDrop($event)"
+      @paste="onPaste($event)"
+    >
       <div class="container mx-auto show_on_load" style="width: 600px;">
         <br />
-        <div id="upload_wrapper" ng-if="!data_object.base_json">
+        <div id="upload_wrapper" x-show="!data_object.base_json">
           <div id="drop_text">Drop file</div>
           <form>
             <div class="fileUpload btn btn-info">
               <span>Or choose <i class="fa fa-folder-open"></i></span>
-              <input
-                id="file"
-                type="file"
-                fileread="data.source"
-                encoding="{{file.chosenEncoding}}"
-                delimiter="{{file.chosenDelimiter}}"
-              />
+              <input id="file" type="file" @change="onFileChange($event)" />
             </div>
             <div class="btn-group">
-              <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button
+                type="button"
+                class="btn btn-outline-secondary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                aria-expanded="false"
+              >
                 Input file config
               </button>
               <div class="dropdown-menu">
-                <div class="dropdown-form p-2">
-                  <div class="form-group input-group-sm">
-                    <label for="encoding">Character encoding</label>
+                <div class="dropdown-form p-2 text-start">
+                  <div class="mb-3">
+                    <label for="encoding" class="form-label">Character encoding</label>
                     <select
                       id="encoding"
-                      ng-model="file.chosenEncoding"
-                      ng-options="enc for enc in file.encodings track by enc"
-                      ng-click="$event.stopPropagation()"
-                      ng-change="encodingChosen(file.chosenEncoding)"
-                      class="form-control"
+                      class="form-select form-select-sm"
+                      x-model="file.chosenEncoding"
+                      @change="settingsChanged()"
                     >
+                      <template x-for="enc in file.encodings" :key="enc">
+                        <option :value="enc" x-text="enc" :selected="enc === file.chosenEncoding"></option>
+                      </template>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label for="delimiter">Cell delimiter</label>
+                  <div class="mb-3">
+                    <label for="delimiter" class="form-label">Cell delimiter</label>
                     <select
                       id="delimiter"
-                      ng-model="file.chosenDelimiter"
-                      ng-options="enc for enc in file.delimiters track by enc"
-                      ng-click="$event.stopPropagation()"
-                      ng-change="delimiterChosen(file.chosenDelimiter)"
-                      class="form-control"
+                      class="form-select"
+                      x-model="file.chosenDelimiter"
+                      @change="settingsChanged()"
                     >
+                      <template x-for="delim in file.delimiters" :key="delim">
+                        <option :value="delim" x-text="delim" :selected="delim === file.chosenDelimiter"></option>
+                      </template>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label for="start_row">Start at row</label>
+                  <div class="mb-3">
+                    <label for="start_row" class="form-label">Start at row</label>
                     <input
                       id="start_row"
                       type="number"
                       min="1"
-                      ng-model="file.startAtRow"
-                      ng-change="startRowSet(file.startAtRow)"
                       class="form-control"
+                      x-model.number="file.startAtRow"
+                      @input="settingsChanged()"
                     >
-                    </select>
-                  </div>   
-                  <div class="form-check" style="margin-bottom: 12px;">
+                  </div>
+                  <div class="form-check mb-3">
                     <input
-                        id="extra_row"
-                        type="checkbox"
-                        ng-model="file.extraRow"
-                        ng-change="extraRowSet(file.extraRow)"
-                        class="form-check-input"
-                        value=""
+                      id="extra_row"
+                      type="checkbox"
+                      class="form-check-input"
+                      x-model="file.extraRow"
+                      @change="settingsChanged()"
                     >
                     <label for="extra_row" class="form-check-label">Fill header row from first line</label>
-                  </div>           
-                  <div class="form-group" ng-if="nonDefaultProfilesExist()">
-                    <label for="profile">Bank profile</label>
+                  </div>
+                  <div class="mb-3" x-show="nonDefaultProfilesExist()">
+                    <label for="profile" class="form-label">Bank profile</label>
                     <select
                       id="profile"
-                      name="ngvalueselect"
-                      ng-model="profileName"
-                      class="form-control"
-                      ng-click="$event.stopPropagation()"
-                      ng-change="profileChosen(profileName)">
-                        <option ng-repeat="(name,profile) in profiles" ng-value="name">
-                          {{name}}
-                        </option>
+                      class="form-select"
+                      x-model="profileName"
+                      @change="profileChosen(profileName)"
+                    >
+                      <template x-for="name in Object.keys(profiles)" :key="name">
+                        <option :value="name" x-text="name" :selected="name === profileName"></option>
+                      </template>
                     </select>
                   </div>
                 </div>
               </div>
             </div>
-            </div>
           </form>
         </div>
-
-        <div class="container" id="tool_wrapper" ng-if="data_object.base_json">
-          <div class="card">
-            <div class="card-header">
-              <div class="float-right">
-                <div
-                  class="btn btn-outline-secondary"
-                  ng-click="toggleNormalizeDate()"
-                >
-                  <i class="fa fa-exchange"></i> Toggle date normalization
-                </div>
-                <div
-                  ng-show="ynab_cols.indexOf('Inflow') != -1 && ynab_map['Inflow'] == ynab_map['Outflow']"
-                  class="btn btn-outline-secondary"
-                  ng-click="invert_flows()"
-                >
-                  <i class="fa fa-exchange"></i> Invert flows
-                </div>
-
-                <div
-                  class="btn btn-outline-secondary"
-                  ng-click="toggleColumnFormat()"
-                >
-                  <i class="fa fa-exchange"></i> Toggle amounts format
-                </div>
-              </div>
-              <h4>YNAB Data <small>(first 10 rows)</small></h4>
-              <div class="clearfix"></div>
-            </div>
-            <div class="table-container">
-              <table class="table table-sm table-striped">
-                <thead>
-                  <tr>
-                    <th
-                      scope="col"
-                      class="form-group"
-                      ng-repeat="col in ynab_cols"
-                    >
-                      <label for="id-{{col}}">{{col}}</label>
-                      <select
-                        class="form-control"
-                        id="id-{{col}}"
-                        ng-model="ynab_map[col]"
-                        ng-options="f for f in data_object.fields()"
-                      >
-                      <option value="">Choose option</option>
-                    </select>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr ng-repeat="row in preview">
-                    <td ng-repeat="col in ynab_cols">
-                      {{row[col]}}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="container" ng-if="data_object.base_json">
-          <div class="card">
-            <div class="card-header">
-              <strong>Imported CSV</strong> <em>(first 10 rows)</em>
-            </div>
-            <div class="table-container table-responsive">
-              <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th ng-repeat="col in data_object.fields()">{{col}}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr ng-repeat="row in data_object.rows() | limitTo:10">
-                    <td ng-repeat="col in data_object.fields()">
-                      {{row[col]}}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       </div>
+
+      <!-- The data cards use the full container width, not the 600px upload box -->
+        <template x-if="data_object.base_json">
+          <div class="container" id="tool_wrapper">
+            <div class="card">
+              <div class="card-header">
+                <div class="float-end">
+                  <button type="button" class="btn btn-outline-secondary" @click="toggleNormalizeDate()">
+                    <i class="fa fa-exchange"></i> Toggle date normalization
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    x-show="ynab_cols.includes('Inflow') && ynab_map['Inflow'] == ynab_map['Outflow']"
+                    @click="invertFlows()"
+                  >
+                    <i class="fa fa-exchange"></i> Invert flows
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" @click="toggleColumnFormat()">
+                    <i class="fa fa-exchange"></i> Toggle amounts format
+                  </button>
+                </div>
+                <h4>YNAB Data <small>(first 10 rows)</small></h4>
+                <div class="clearfix"></div>
+              </div>
+              <div class="table-container">
+                <table class="table table-sm table-striped">
+                  <thead>
+                    <tr>
+                      <template x-for="col in ynab_cols" :key="col">
+                        <th scope="col">
+                          <label class="form-label" :for="'id-' + col" x-text="col"></label>
+                          <select
+                            class="form-select"
+                            :id="'id-' + col"
+                            x-model="ynab_map[col]"
+                            @change="saveProfiles()"
+                          >
+                            <option value="">Choose option</option>
+                            <template x-for="field in data_object.fields()" :key="field">
+                              <option :value="field" x-text="field" :selected="field === ynab_map[col]"></option>
+                            </template>
+                          </select>
+                        </th>
+                      </template>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="(row, i) in preview" :key="i">
+                      <tr>
+                        <template x-for="col in ynab_cols" :key="col">
+                          <td x-text="row[col]"></td>
+                        </template>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </template>
+        <template x-if="data_object.base_json">
+          <div class="container">
+            <div class="card">
+              <div class="card-header">
+                <strong>Imported CSV</strong> <em>(first 10 rows)</em>
+              </div>
+              <div class="table-container table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <template x-for="col in data_object.fields()" :key="col">
+                        <th x-text="col"></th>
+                      </template>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="(row, i) in data_object.rows().slice(0, 10)" :key="i">
+                      <tr>
+                        <template x-for="col in data_object.fields()" :key="col">
+                          <td x-text="row[col]"></td>
+                        </template>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </template>
     </div>
 
-    <div id="angular_is_loading">
+    <div id="app_is_loading">
       <div class="loading_text">
         <i class="fa fa-spinner fa-spin"></i> Loading...
       </div>

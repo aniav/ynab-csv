@@ -33,7 +33,7 @@ function usedClasses() {
     m[1].split(/\s+/).filter((c) => c && !c.includes('{{')).forEach((c) => set.add(c));
   }
   // classes applied dynamically
-  ['angular_loaded', 'dragging', 'dropzone', 'show'].forEach((c) => set.add(c));
+  ['app_loaded', 'dragging', 'dropzone', 'show'].forEach((c) => set.add(c));
   return set;
 }
 
