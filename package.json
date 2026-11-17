@@ -24,15 +24,30 @@
     "url": "https://github.com/aniav/ynab-csv/issues"
   },
   "homepage": "https://github.com/aniav/ynab-csv",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "http-server": "^14.1.1"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.28.0",
-    "babel-jest": "^30.0.5",
+    "@babel/preset-env": "^7.29.14",
+    "angular": "1.8.3",
+    "babel-jest": "^30.5.2",
+    "bootstrap": "4.6.2",
     "browser-sync": "^3.0.2",
-    "jest": "^30.0.5",
-    "jest-environment-jsdom": "^30.0.5",
-    "jsdom": "^26.1.0"
+    "font-awesome": "4.7.0",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "jquery": "3.7.1",
+    "jsdom": "^26.1.0",
+    "papaparse": "5.7.1",
+    "popper.js": "1.16.1"
+  },
+  "overrides": {
+    "glob": "^14.0.6",
+    "test-exclude": {
+      "minimatch": "^11.0.9"
+    }
   }
 }
