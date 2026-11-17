@@ -134,7 +134,7 @@ window.DataObject = class DataObject {
   converted_csv(limit, ynab_cols, lookup, inverted_outflow, normalize_date) {
     var string;
     if (this.base_json === null) {
-      return nil;
+      return "";
     }
     // Papa.unparse string
     string = '"' + ynab_cols.join('","') + '"\n';

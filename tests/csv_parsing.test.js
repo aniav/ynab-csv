@@ -111,6 +111,12 @@ describe('CSV parsing with real PapaParse', () => {
     expect(d.rows()[0].Amount).toBeUndefined();
   });
 
+  test('converting before anything was parsed returns empty results instead of throwing', () => {
+    const d = new DataObject();
+    expect(d.converted_json(null, ['Date'], { Date: 'Date' })).toBeNull();
+    expect(d.converted_csv(null, ['Date'], { Date: 'Date' })).toBe('');
+  });
+
   test('end to end: converted_csv with real parsing', () => {
     const d = parse('Date;Payee;Amount\n2024-01-01;"Shop ""A""";-12.50\n2024-01-02;Salary;1000\n');
     const csv = d.converted_csv(null, ['Date', 'Payee', 'Memo', 'Outflow', 'Inflow'], {

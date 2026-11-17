@@ -10,9 +10,6 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 const { cdnAssets, INDEX_HTML, ROOT } = require('./helpers/page');
 
-// Classes present in the markup that no stylesheet styles (harmless).
-const UNSTYLED_CLASSES = new Set(['loading_text']);
-
 function definedClasses() {
   const files = cdnAssets().filter((a) => a.tag === 'link').map((a) => a.localPath);
   const { document } = new JSDOM(INDEX_HTML).window;
@@ -39,7 +36,7 @@ function usedClasses() {
 
 test('all classes used in index.html are defined by a loaded stylesheet', () => {
   const defined = definedClasses();
-  const missing = [...usedClasses()].filter((c) => !defined.has(c) && !UNSTYLED_CLASSES.has(c));
+  const missing = [...usedClasses()].filter((c) => !defined.has(c));
   expect(missing).toEqual([]);
 });
 
