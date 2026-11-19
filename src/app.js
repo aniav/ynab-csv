@@ -149,6 +149,44 @@ function ynabApp() {
       return this.data_object.converted_json(10, this.ynab_cols, this.ynab_map, this.inverted_outflow, this.normalize_date);
     },
 
+    // A YNAB column counts as mapped only if it points at a column that exists
+    // in the loaded file (the default profile maps "Date" -> "Date" etc., which
+    // means nothing for a file whose headers are different).
+    isMapped: function (col) {
+      if (!this.data_object.base_json) {
+        return false;
+      }
+      var field = this.ynab_map[col];
+      return !!field && this.data_object.fields().includes(field);
+    },
+
+    // YNAB columns that still need choosing before the file can be saved:
+    // Date, Payee and the amount (Amount, or at least one of Outflow/Inflow).
+    get missingColumns() {
+      var self = this;
+      var missing = ["Date", "Payee"].filter(function (col) { return !self.isMapped(col); });
+      if (this.ynab_cols.includes("Amount")) {
+        if (!this.isMapped("Amount")) {
+          missing.push("Amount");
+        }
+      } else if (!this.isMapped("Outflow") && !this.isMapped("Inflow")) {
+        missing.push("Outflow or Inflow");
+      }
+      return missing;
+    },
+
+    get canSave() {
+      return this.missingColumns.length === 0;
+    },
+
+    get saveHint() {
+      if (this.canSave) {
+        return "";
+      }
+      return "Choose which columns of your file to use for: " + this.missingColumns.join(", ") +
+        ". Pick them in the dropdowns above the YNAB Data table.";
+    },
+
     // --- loading data ---------------------------------------------------
 
     loadCsv: function (text) {
@@ -215,6 +253,9 @@ function ynabApp() {
     },
 
     downloadFile: function () {
+      if (!this.canSave) {
+        return;
+      }
       var a = document.createElement("a");
       // UTF-8 encode, then base64
       a.href = "data:attachment/csv;base64," + btoa(unescape(encodeURIComponent(this.csvString())));

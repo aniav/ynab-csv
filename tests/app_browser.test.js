@@ -192,15 +192,16 @@ describe('column mapping', () => {
 
     const s = mappingSelects(page);
     await selectOption(page, s.Date, 'When');
+    await selectOption(page, s.Payee, 'Who');
     await selectOption(page, s.Amount, 'Amount');
     expect(previewTable(page).rows).toEqual([
-      ['2024-01-01', '', '', '-12.50'],
-      ['2024-01-02', '', '', '1000'],
+      ['2024-01-01', 'Shop', '', '-12.50'],
+      ['2024-01-02', 'Employer', '', '1000'],
     ]);
 
     await click(page, saveButton(page));
     expect(decodeDownload(page.downloads[0].href)).toBe(
-      '"Date","Payee","Memo","Amount"\n"2024-01-01","","","-12.50"\n"2024-01-02","","","1000"\n'
+      '"Date","Payee","Memo","Amount"\n"2024-01-01","Shop","","-12.50"\n"2024-01-02","Employer","","1000"\n'
     );
 
     await click(page, toggle);
@@ -278,7 +279,7 @@ describe('toggling amounts format keeps existing mappings', () => {
 });
 
 describe('date normalization', () => {
-  const VENMO_CSV = 'Date,Payee,Amount\n2020-11-30T17:07:16,Friend,-5\n2020-12-01,Other,7\n';
+  const VENMO_CSV = 'Date,Payee,Outflow\n2020-11-30T17:07:16,Friend,-5\n2020-12-01,Other,7\n';
 
   test('toggle strips the time part from ISO timestamps and is saved in the profile', async () => {
     page = await loadPage();
@@ -305,6 +306,40 @@ describe('date normalization', () => {
     });
     await uploadFile(page, VENMO_CSV);
     expect(previewTable(page).rows[0][0]).toBe('2020-11-30');
+  });
+});
+
+describe('save button', () => {
+  test('is disabled with a hint until Date, Payee and an amount are mapped', async () => {
+    page = await loadPage();
+    await uploadFile(page, BANK_CSV);
+    const hint = () => page.$('#save_wrapper').getAttribute('title');
+
+    expect(saveButton(page).disabled).toBe(true);
+    expect(hint()).toMatch(/Date, Payee, Outflow or Inflow/);
+
+    await click(page, saveButton(page));
+    expect(page.downloads).toHaveLength(0);
+
+    const s = mappingSelects(page);
+    await selectOption(page, s.Date, 'When');
+    await selectOption(page, s.Payee, 'Who');
+    expect(saveButton(page).disabled).toBe(true);
+    expect(hint()).toMatch(/: Outflow or Inflow\./);
+
+    await selectOption(page, s.Outflow, 'Amount');
+    expect(saveButton(page).disabled).toBe(false);
+    expect(hint()).toBeFalsy();
+
+    await click(page, headerButton(page, /Toggle amounts format/));
+    expect(saveButton(page).disabled).toBe(true);
+    expect(hint()).toMatch(/: Amount\./);
+  });
+
+  test('is enabled right away when the file already uses YNAB column names', async () => {
+    page = await loadPage();
+    await uploadFile(page, YNAB_CSV);
+    expect(saveButton(page).disabled).toBe(false);
   });
 });
 

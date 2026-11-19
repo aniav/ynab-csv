@@ -56,9 +56,12 @@
           <button type="button" class="btn btn-info" @click="reloadApp()">
             <i class="fa-solid fa-arrows-rotate"></i> Load a different file
           </button>
-          <button type="button" class="btn btn-success" @click="downloadFile()">
-            <i class="fa-solid fa-cloud-arrow-down"></i> Save YNAB Data
-          </button>
+          <!-- Disabled buttons don't get hover events, so the hint lives on a wrapper -->
+          <span class="d-inline-block" id="save_wrapper" :title="saveHint" :tabindex="canSave ? -1 : 0">
+            <button type="button" class="btn btn-success" :disabled="!canSave" @click="downloadFile()">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Save YNAB Data
+            </button>
+          </span>
         </div>
         <div>
           <a

@@ -263,10 +263,47 @@ describe('file input, drag & drop and paste', () => {
   });
 });
 
+describe('missingColumns / canSave', () => {
+  test('nothing can be saved before a file is loaded', () => {
+    const app = createApp();
+    expect(app.canSave).toBe(false);
+  });
+
+  test('default mapping to names the file does not have counts as missing', () => {
+    const app = createApp();
+    app.loadCsv(BANK_CSV);
+    expect(app.missingColumns).toEqual(['Date', 'Payee', 'Outflow or Inflow']);
+    expect(app.saveHint).toMatch(/Date, Payee, Outflow or Inflow/);
+  });
+
+  test('either Outflow or Inflow is enough in the old format', () => {
+    const app = createApp();
+    app.loadCsv(BANK_CSV);
+    app.ynab_map.Date = 'When';
+    app.ynab_map.Payee = 'Who';
+    app.ynab_map.Inflow = 'Amount';
+    expect(app.missingColumns).toEqual([]);
+    expect(app.canSave).toBe(true);
+    expect(app.saveHint).toBe('');
+  });
+
+  test('Amount is required in the new format; Memo never is', () => {
+    const app = createApp();
+    app.loadCsv(BANK_CSV);
+    app.toggleColumnFormat();
+    app.ynab_map.Date = 'When';
+    app.ynab_map.Payee = 'Who';
+    app.ynab_map.Amount = '';
+    expect(app.missingColumns).toEqual(['Amount']);
+    app.ynab_map.Amount = 'Amount';
+    expect(app.canSave).toBe(true);
+  });
+});
+
 describe('downloadFile', () => {
   test('downloads a UTF-8 base64 data URL named with today\'s date and cleans up', () => {
     const app = createApp();
-    app.loadCsv('Date,Payee\n2024-01-01,Łódź\n');
+    app.loadCsv('Date,Payee,Outflow\n2024-01-01,Łódź,1\n');
     const clicked = [];
     const spy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
       clicked.push({ href: this.href, download: this.download, attached: this.isConnected });
@@ -279,8 +316,18 @@ describe('downloadFile', () => {
     expect(attached).toBe(true);
     expect(download).toBe(`ynab_data_${new Date().yyyymmdd()}.csv`);
     const csv = Buffer.from(href.replace('data:attachment/csv;base64,', ''), 'base64').toString('utf8');
-    expect(csv).toBe('"Date","Payee","Memo","Outflow","Inflow"\n"2024-01-01","Łódź","","",""\n');
+    expect(csv).toBe('"Date","Payee","Memo","Outflow","Inflow"\n"2024-01-01","Łódź","","1",""\n');
     expect(document.querySelectorAll('a[download]')).toHaveLength(0);
+    spy.mockRestore();
+  });
+
+  test('does nothing until Date, Payee and an amount are mapped', () => {
+    const app = createApp();
+    app.loadCsv(BANK_CSV);
+    const spy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    expect(app.canSave).toBe(false);
+    app.downloadFile();
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 
