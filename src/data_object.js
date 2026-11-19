@@ -83,6 +83,10 @@ window.DataObject = class DataObject {
           ynab_cols.forEach(function (col) {
             var cell;
             cell = row[lookup[col]];
+            // Trim first so the sign checks below see " -12.50" (CommBank) as negative.
+            if (typeof cell === "string") {
+              cell = cell.trim();
+            }
             // Some YNAB columns need special formatting,
             //   the rest are just returned as they are.
             if (cell) {

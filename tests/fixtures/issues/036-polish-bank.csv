@@ -1,0 +1,4 @@
+Id;Data księgowania;Data zlecona;Typ transakcji;Kwota;Waluta;Saldo po transakcji;Rachunek nadawcy/odbiorcy;Nazwa nadawcy/odbiorcy;Opis transakcji;Dane dodatkowe;Kwota w walucie oryginalnej;Waluta oryginalna;Kurs przewalutowania;Instrukcja kosztowa;Referencje własne zleceniodawcy;Referencje polecenia wypłaty
+259;2020-08-29;2020-08-29;Przelew na rachunek;+23.00;PLN;81.55;00000000000000000000000000;JAN KOWALSKI  UL. PRZYKŁADOWA 1 00-001 WARSZAWA;Tytuł: przykładowy;Dane adr. rach. przeciwst.: JAN KOWALSKI Data waluty: 2020-08-29;;;;;;
+260;2020-09-14;2020-09-15;Naliczenie odsetek;+0.03;PLN;81.76;;;;KAPITALIZACJA ODSETEK Data waluty: 2020-09-15;;;;;;
+261;2020-09-14;2020-09-15;Podatek od odsetek;-0.04;PLN;81.72;;;;PODATEK OD ODSETEK KAPITAŁOWYCH Data waluty: 2020-09-15;;;;;;
